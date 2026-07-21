@@ -1,4 +1,4 @@
-# ai-daily skill 设计文档
+# subscribe-ai-daily skill 设计文档
 
 - **日期**：2026-07-21
 - **状态**：已通过设计评审，待写实现计划
@@ -15,7 +15,7 @@ skill 本身不含调度、不含推送、不落地文件。定时由 harness（
 ## 2. 目录结构（仓库）
 
 ```
-ai-daily/
+subscribe-ai-daily/
 ├── SKILL.md                # 主指令（frontmatter + 工作流）
 ├── README.md               # 开源说明 + 一键安装
 ├── install.sh              # 一键安装（检测 Claude Code / Codex）
@@ -25,7 +25,7 @@ ai-daily/
 
 运行期产物（用户机器）：
 ```
-~/.claude/skills/ai-daily/
+~/.claude/skills/subscribe-ai-daily/
 ├── SKILL.md
 ├── sources.json            # 安装时下的本地副本（离线 fallback）
 ├── sources.local.json      # 用户本地 override（可选）
@@ -108,7 +108,7 @@ Codex 的对应目录同构，`install.sh` 检测后同步安装。
 3. **文章类别**：blog / research / news 多选（默认全选）
 4. **公司筛选**：10 家列表多选保留项（默认全选）
 
-问卷完写入 `config.json`。若开启定时，额外在 harness 配置里写一条唤起 `ai-daily` 的 cron 条目。
+问卷完写入 `config.json`。若开启定时，额外在 harness 配置里写一条唤起 `subscribe-ai-daily` 的 cron 条目。
 
 ## 6. SKILL.md 工作流（被唤起时执行）
 
@@ -144,7 +144,7 @@ Codex 的对应目录同构，`install.sh` 检测后同步安装。
 DeepSeek、Moonshot 过去 24h 未发布新文章。
 
 ---
-*数据源：ai-daily skill | 窗口：过去 24h*
+*数据源：subscribe-ai-daily skill | 窗口：过去 24h*
 ```
 
 ## 7. 一键安装 `install.sh`
@@ -152,10 +152,10 @@ DeepSeek、Moonshot 过去 24h 未发布新文章。
 - 检测 `~/.claude/` 存在 → 装 Claude Code 版
 - 检测 Codex 配置目录存在 → 同步装一份
 - 跑 4 题问卷 → 写 `config.json`
-- 若开启定时 → 写 harness cron 条目唤起 `ai-daily`
+- 若开启定时 → 写 harness cron 条目唤起 `subscribe-ai-daily`
 - README 给出一行安装命令：
   ```bash
-  curl -fsSL https://raw.githubusercontent.com/<you>/ai-daily/main/install.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/<you>/subscribe-ai-daily/main/install.sh | bash
   ```
 
 ## 8. 错误处理
