@@ -8,7 +8,16 @@
 
 开源、跨 Claude Code / Codex 的 skill。被唤起时从 10 家 AI 巨头的官方源抓取过去 24h 内的新文章，做跨公司归纳 + 按公司分节附上每篇文章实际链接，**直接输出到当前对话框**。
 
-skill 本身不含调度、不含推送、不落地文件。定时由 harness（Claude Code / Codex）自带的 cron 机制唤起——定时仅在 harness 正在运行时生效，未设定时则由用户主动调用触发。
+skill 本身不含调度、不含推送。定时由 harness 自带调度机制唤起：
+
+- **Claude Code**：通过 `~/Library/LaunchAgents/ai.subscribe-ai-daily.plist`（macOS LaunchAgent）在配置时间跑 `claude -p "invoke subscribe-ai-daily"`。你的 `settings.json` 已授权 `additionalDirectories: [~/Library/LaunchAgents]`，安装脚本可直写。
+- **Codex**：按 Codex 的调度约定（实现阶段确认具体路径）。
+
+**输出路由（双模式）**：skill 运行时检测当前是否为交互式会话：
+- 交互式（用户主动调用 / 对话框开着）→ 直接打印到对话框
+- headless（LaunchAgent 唤起、无对话框）→ 落地到 `~/ai-daily/YYYY-MM-DD.md` + macOS 通知中心弹通知「subscribe-ai-daily 日报已生成」
+
+未设定时则仅由用户主动调用触发。
 
 10 家公司：Anthropic、OpenAI、Google（含 DeepMind）、Meta、DeepSeek、Moonshot、智谱（Zhipu）、Kimi、阿里（Qwen）、字节（Seed）。
 
@@ -161,7 +170,7 @@ DeepSeek、Moonshot 过去 24h 未发布新文章。
 ## 8. 错误处理
 
 - **单家公司抓取失败**：跳过、末尾标注「Anthropic 抓取失败，下次重试」，不阻塞其他公司
-- **全部失败**：输出「今日抓取异常」+ 各家错误摘要
+- **全部失败**：输出「今日抓取异常」+ 各家错误摘要（交互式）/ 落地错误日志 `~/ai-daily/YYYY-MM-DD.err.log`（headless）
 - **远程 sources 拉取失败**：静默退回本地副本，正常出报告
 - **某家过去 24h 无新文章**：列入「今日无更新」节
 
@@ -173,14 +182,12 @@ DeepSeek、Moonshot 过去 24h 未发布新文章。
 
 ## 10. YAGNI 砍掉
 
-- 不内置推送（飞书/邮件/Telegram）——只输出到对话框
-- 不落地文件、不做缓存 DB
-- 不读正文做深度分析——只到三句话摘要级
-- 不做 Web UI
+- 不内置推送（飞书/邮件/Telegram）——仅对话框 / 落地 md + 通知
+- headless 模式只落地 md + 本地通知，不做正文深度分析、不做缓存 DB、不做 Web UI
 - v1 不做 doctor 子命令 / 源状态表（v2 再考虑）
 
 ## 11. 待实现阶段确认的细节
 
 - 10 家公司各源的真实 `method`（rss / html / fetch），需逐家访问验证后写进默认 `sources.json`
 - GitHub 仓库名与 `install.sh` 的 raw URL 占位符 `<you>` 待定
-- Codex 的 skill 目录与 cron 配置路径待实现阶段确认（与 Claude Code 不同）
+- Codex 的 skill 目录与调度机制路径待实现阶段确认（与 Claude Code 不同）
