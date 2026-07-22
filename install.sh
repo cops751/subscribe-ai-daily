@@ -70,24 +70,35 @@ CRON="0 9 * * *"
 HH=9
 MM=0
 
-read -r -p "开启定时推送? (y/N) " ANS_SCHEDULE || ANS_SCHEDULE=""
-if [[ "${ANS_SCHEDULE:-N}" =~ ^[Yy] ]]; then
+# read_prompt: prompt that works under `curl | bash` (where stdin is the script).
+# Reads from /dev/tty when interactive; under /dev/tty read failure, echoes the
+# default so the script keeps moving instead of dying on `set -u`.
+read_prompt() {
+  local _p="$1" _var="$2" _def="${3:-}"
+  printf '%s' "$_p" >&2
+  local _line="$_def"
+  if exec 3</dev/tty 2>/dev/null; then
+    IFS= read -r _line <&3 || _line="$_def"
+    exec 3<&-
+  fi
+  printf -v "$_var" '%s' "$_line"
+}
+
+read_prompt "开启定时推送? (y/N) " ANS_SCHEDULE "N"
+if [[ "$ANS_SCHEDULE" =~ ^[Yy] ]]; then
   ENABLE_SCHED=1
-  read -r -p "每天推送时间 (HH:MM, 默认 09:00) " TM || TM=""
-  TM="${TM:-09:00}"
+  read_prompt "每天推送时间 (HH:MM, 默认 09:00) " TM "09:00"
   HH=$(echo "$TM" | cut -d: -f1 | sed 's/^0//')
   MM=$(echo "$TM" | cut -d: -f2 | sed 's/^0//')
   CRON="$MM $HH * * *"
 fi
 
-read -r -p "输出语言 (zh/en, 默认 zh) " LANG_OUT || LANG_OUT=""
-LANG_OUT="${LANG_OUT:-zh}"
+read_prompt "输出语言 (zh/en, 默认 zh) " LANG_OUT "zh"
 
-read -r -p "文章类别 (回车=blog,research,news 全选; 或用逗号筛选) " CATS || CATS=""
-CATS="${CATS:-blog,research,news}"
+read_prompt "文章类别 (回车=blog,research,news 全选; 或用逗号筛选) " CATS "blog,research,news"
 CATS_JSON=$(echo "$CATS" | tr ',' '\n' | jq -R . | jq -s .)
 
-read -r -p "公司筛选 (回车=10家全选; 或用逗号列出要保留的 id) " COMPS || COMPS=""
+read_prompt "公司筛选 (回车=10家全选; 或用逗号列出要保留的 id) " COMPS "" || COMPS=""
 if [[ -z "$COMPS" ]]; then
   COMPS_JSON='["anthropic","openai","google","meta","deepseek","moonshot","zhipu","kimi","alibaba","bytedance"]'
 else
