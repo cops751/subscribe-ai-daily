@@ -44,6 +44,14 @@ Answers are saved to `config.json` and `configured` flips to `true`. If you enab
 
 In headless mode the report is written to `$OUTPUT_DIR/YYYY-MM-DD.md` (default `~/ai-daily/`) and a macOS notification fires via `osascript`.
 
+## Updates
+
+The installer does a `git clone --depth 1` into the skill directory, so updates are automatic: each time you invoke the skill, it runs `git pull --ff-only` (once per session) and fast-forwards to the latest `main`. Your `config.json` and `sources.local.json` are gitignored, so pulls never overwrite your config.
+
+If you installed with an older curl-based installer (no `.git` in the skill dir), just re-run the install command once to migrate — your existing config is preserved automatically.
+
+Re-running the install command on a git-cloned install also acts as an update (fast-forward).
+
 ## Configuration
 
 `~/.claude/skills/subscribe-ai-daily/config.json` (or the Codex equivalent):

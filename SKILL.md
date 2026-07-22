@@ -155,29 +155,37 @@ HTTP 错误恢复表:
 
 ## 版本自检(每会话一次)
 
-本 Skill 是冻结快照,装到本地后不会自动更新。每个会话第一次真正生成日报前,顺带做一次版本比对:
+本 Skill 装到本地后,每个会话第一次真正生成日报前,顺带做一次版本比对,有新版就自动更新(git clone 装的)或提示重装(curl 装的)。
 
 ```bash
-# 本地版本:按当前 host 找 VERSION 文件
-#   优先 ~/.claude/skills(含 Claude Code canonical path),
-#   fallback ~/.codex/skills(Codex-only 安装)。
-LOCAL="dev"
+# 找当前 host 的 skill 目录
+SKILL_DIR=""
 for d in "$HOME/.claude/skills/subscribe-ai-daily" "$HOME/.codex/skills/subscribe-ai-daily"; do
-  if [[ -f "$d/VERSION" ]]; then LOCAL=$(cat "$d/VERSION"); break; fi
+  if [[ -d "$d" ]]; then SKILL_DIR="$d"; break; fi
 done
-# 远端最新 tag(去掉 refs/tags/ 前缀和 ^{})
-REMOTE=$(git ls-remote --tags --sort=-v:refname https://github.com/cops751/subscribe-ai-daily.git 2>/dev/null | head -1 | sed 's|.*refs/tags/||' | sed 's|\^{}||')
+
+# git clone 装的:git pull 自动更新(整会话最多一次)
+if [[ -n "$SKILL_DIR" && -d "$SKILL_DIR/.git" ]]; then
+  BEFORE=$(git -C "$SKILL_DIR" rev-parse --short HEAD 2>/dev/null)
+  if git -C "$SKILL_DIR" pull --ff-only --depth 1 2>/dev/null; then
+    AFTER=$(git -C "$SKILL_DIR" rev-parse --short HEAD 2>/dev/null)
+    if [[ "$BEFORE" != "$AFTER" ]]; then
+      echo "subscribe-ai-daily 已更新到 $AFTER(本轮改动将下次生效)"
+    fi
+  fi
+# curl 装的(无 .git):读 VERSION 比对远端 tag,提示重装
+else
+  LOCAL=$(cat "$SKILL_DIR/VERSION" 2>/dev/null || echo "dev")
+  REMOTE=$(git ls-remote --tags --sort=-v:refname https://github.com/cops751/subscribe-ai-daily.git 2>/dev/null | head -1 | sed 's|.*refs/tags/||' | sed 's|\^{}||')
+  # 远端严格大于本地时提示,整会话最多一次
+fi
 ```
 
-比较规则(按 semver 数字比较,去掉前导 `v`):
+git 模式:`git pull --ff-only`,有新 commit 就 fast-forward,改动下次生成日报生效(本会话已加载的旧 SKILL.md 不重载)。config.json 在 .gitignore 里,pull 不碰用户配置。
 
-- `LOCAL` 是 `dev`(开发态或读不到):静默,不影响日报。
-- 远端 tag 严格大于本地:在日报末尾追加一行更新提示,整个会话最多提示一次。
-- 本地大于等于远端,或远端读取失败:静默。
+curl 模式(无 .git,`:dev` 或读不到 VERSION):远端 tag 严格大于本地时,在日报末尾追加一行更新提示,整会话最多一次:
 
-更新提示文案:
-
-> 💡 subscribe-ai-daily 有新版(`<REMOTE>`)。当前安装的是 `<LOCAL>`。重跑 install.sh 即可更新:`curl -fsSL https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh | bash`
+> 💡 subscribe-ai-daily 有新版(`<REMOTE>`)。当前安装的是 `<LOCAL>`。重跑 install.sh 即可更新并启用自动更新:`curl -fsSL https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh | bash`
 
 不要给一个默认写入其它平台目录的"通用更新命令";让用户用上面的 install.sh 指定目标平台。
 

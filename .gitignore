@@ -1,0 +1,3 @@
+# User config — never tracked, so git pull can't overwrite it.
+config.json
+sources.local.json
