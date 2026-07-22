@@ -1,0 +1,69 @@
+{
+  "anthropic": {
+    "company": "Anthropic",
+    "sources": [
+      {"url": "https://claude.com/blog", "method": "html", "category": "blog", "selector": "a[href^=\"/blog/\"]:not([href*=\"blog-category\"])"},
+      {"url": "https://www.anthropic.com/research", "method": "html", "category": "research", "selector": "a[href^=\"/research/\"]"},
+      {"url": "https://www.anthropic.com/news", "method": "html", "category": "news", "selector": "a[href^=\"/news/\"]"}
+    ]
+  },
+  "openai": {
+    "company": "OpenAI",
+    "sources": [
+      {"url": "https://developers.openai.com/rss.xml", "method": "rss", "category": "blog"},
+      {"url": "https://openai.com/research/", "method": "fetch", "category": "research"},
+      {"url": "https://openai.com/index/", "method": "fetch", "category": "news"}
+    ]
+  },
+  "google": {
+    "company": "Google",
+    "sources": [
+      {"url": "https://research.google/blog/rss/", "method": "rss", "category": "research"},
+      {"url": "https://deepmind.google/blog/rss.xml", "method": "rss", "category": "research"},
+      {"url": "https://blog.google/rss/", "method": "rss", "category": "news", "note": "Google-wide supplement for ai.google coverage"}
+    ]
+  },
+  "meta": {
+    "company": "Meta",
+    "sources": [
+      {"url": "https://ai.meta.com/blog/", "method": "fetch", "category": "blog"}
+    ]
+  },
+  "deepseek": {
+    "company": "DeepSeek",
+    "sources": [],
+    "note": "No public blog/research listing page found as of 2026-07-22. DeepSeek publishes via WeChat (mp.weixin.qq.com), GitHub (github.com/deepseek-ai), and Hugging Face papers — none suitable for a daily RSS/HTML/fetch pipeline. Re-evaluate if api-docs.deepseek.com/news or platform.deepseek.com adds a blog listing."
+  },
+  "moonshot": {
+    "company": "Moonshot",
+    "sources": [
+      {"url": "https://www.kimi.com/blog/", "method": "fetch", "category": "blog"}
+    ],
+    "note": "Moonshot's official blog is hosted on kimi.com (same as the kimi entry). moonshot.cn/blog and moonshot.ai/blog return the nginx default page."
+  },
+  "zhipu": {
+    "company": "Zhipu",
+    "sources": [
+      {"url": "https://www.zhipuai.cn/zh/research", "method": "fetch", "category": "research"}
+    ]
+  },
+  "kimi": {
+    "company": "Kimi",
+    "sources": [
+      {"url": "https://www.kimi.com/blog/", "method": "fetch", "category": "blog"}
+    ]
+  },
+  "alibaba": {
+    "company": "Alibaba (Qwen)",
+    "sources": [
+      {"url": "https://qwen.ai/research", "method": "fetch", "category": "research"}
+    ]
+  },
+  "bytedance": {
+    "company": "Bytedance (Seed)",
+    "sources": [
+      {"url": "https://seed.bytedance.com/zh/blog", "method": "fetch", "category": "blog"},
+      {"url": "https://seed.bytedance.com/zh/research", "method": "fetch", "category": "research"}
+    ]
+  }
+}
