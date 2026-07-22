@@ -1,0 +1,12 @@
+{
+  "language": "zh",
+  "categories": ["blog", "research", "news"],
+  "companies": ["anthropic", "openai", "google", "meta", "deepseek", "moonshot", "zhipu", "kimi", "alibaba", "bytedance"],
+  "summary_style": "paragraph",
+  "window_hours": 24,
+  "output_dir": "~/ai-daily",
+  "schedule": {
+    "enabled": false,
+    "cron": "0 9 * * *"
+  }
+}
