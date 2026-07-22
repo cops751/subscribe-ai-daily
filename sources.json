@@ -10,9 +10,8 @@
   "openai": {
     "company": "OpenAI",
     "sources": [
-      {"url": "https://developers.openai.com/rss.xml", "method": "rss", "category": "blog"},
-      {"url": "https://openai.com/research/", "method": "fetch", "category": "research"},
-      {"url": "https://openai.com/index/", "method": "fetch", "category": "news"}
+      {"url": "https://developers.openai.com/rss.xml", "method": "rss", "category": "blog", "note": "Developer-focused (API, MCP, Codex)"},
+      {"url": "https://openai.com/blog/rss.xml", "method": "rss", "category": "news", "note": "Official OpenAI News RSS; replaces blocked /research/ and /index/ HTML pages (Cloudflare 403 on curl+WebFetch)"}
     ]
   },
   "google": {
@@ -26,7 +25,7 @@
   "meta": {
     "company": "Meta",
     "sources": [
-      {"url": "https://ai.meta.com/blog/", "method": "fetch", "category": "blog"}
+      {"url": "https://about.fb.com/news/tag/ai/feed", "method": "rss", "category": "blog", "note": "Meta newsroom AI-tag RSS (WordPress); replaces ai.meta.com/blog which 400s on curl and is WebFetch-domain-blocked. May include infra/datacenter stories tagged AI — filter by title keywords if strict AI-research filtering needed."}
     ]
   },
   "deepseek": {

@@ -40,7 +40,12 @@ for it in items:
         le = it.find('a:link', ns)
         if le is not None: link = le.get('href','')
     pub = g('pubDate') or g('updated') or g('published')
-    print(json.dumps({'title':title,'url':link,'pubDate':pub,'category':category,'excerpt':''}))
+    desc = g('description') or g('summary') or g('content')
+    # strip HTML tags + collapse whitespace for a clean excerpt
+    import re as _re
+    desc = _re.sub(r'<[^>]+>', '', desc)
+    desc = _re.sub(r'\s+', ' ', desc).strip()
+    print(json.dumps({'title':title,'url':link,'pubDate':pub,'category':category,'excerpt':desc}))
 PY
       rm -f "$tmp"
       ;;
