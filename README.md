@@ -18,6 +18,13 @@ When invoked (manually or on schedule), the skill:
 curl -fsSL https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh | bash
 ```
 
+或者直接把下面这句话发给你的 agent,让它审阅后安装:
+
+```text
+请检查并安装 subscribe-ai-daily skill:https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh
+先读取 install.sh 和 SKILL.md,告诉我你准备写入的目录和文件;不要使用 sudo,不要覆盖其它 skill。安装完成后告诉我是否需要重启或开启新会话,并给出一个验证问题。
+```
+
 The installer is non-interactive: it copies the skill files and writes a default config (10 companies, zh, all categories, no schedule). It installs into `~/.claude/skills/subscribe-ai-daily/` (Claude Code) and, if `~/.codex/` exists, also into `~/.codex/skills/subscribe-ai-daily/` (Codex).
 
 ## First use (config wizard)
