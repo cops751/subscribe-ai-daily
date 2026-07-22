@@ -27,10 +27,12 @@ except Exception:
     sys.exit(0)
 root = tree.getroot()
 ns = {'a':'http://www.w3.org/2005/Atom'}
-items = root.findall('.//item') or root.findall('.//a:entry', ns)
+items = root.findall('.//item')
+if not items: items = root.findall('.//a:entry', ns)
 for it in items:
     def g(tag):
-        el = it.find(tag) or it.find('a:'+tag, ns)
+        el = it.find(tag)
+        if el is None: el = it.find('a:'+tag, ns)
         return (el.text or '').strip() if el is not None else ''
     title = g('title')
     link = g('link')
