@@ -71,15 +71,18 @@ HH=9
 MM=0
 
 # read_prompt: prompt that works under `curl | bash` (where stdin is the script).
-# Reads from /dev/tty when interactive; under /dev/tty read failure, echoes the
-# default so the script keeps moving instead of dying on `set -u`.
+# When a tty is attached, read the answer from /dev/tty with the prompt shown
+# inline; otherwise fall back to the default so non-interactive runs keep moving.
 read_prompt() {
   local _p="$1" _var="$2" _def="${3:-}"
-  printf '%s' "$_p" >&2
   local _line="$_def"
-  if exec 3</dev/tty 2>/dev/null; then
-    IFS= read -r _line <&3 || _line="$_def"
-    exec 3<&-
+  if [[ -t 0 ]] || [[ -t 1 ]]; then
+    # interactive terminal: ask via /dev/tty so piped-stdin scripts still work
+    if IFS= read -r -p "$_p" _line </dev/tty 2>/dev/null; then
+      :
+    else
+      _line="$_def"
+    fi
   fi
   printf -v "$_var" '%s' "$_line"
 }
