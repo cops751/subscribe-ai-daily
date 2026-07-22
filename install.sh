@@ -83,5 +83,5 @@ fi
 # --- 4. LaunchAgent only if the user later sets schedule.enabled=true in config ---
 # (handled by the skill's first-use wizard, not by this installer.)
 
-echo "=== done. ask your agent '今天 AI 圈有什么' to start; first run will guide config ==="
+echo "=== 安装成功，在你的Claude code或Codex输入/subscribe-ai-daily即可使用 ==="
 
