@@ -13,6 +13,7 @@ When invoked (manually or on schedule), the skill:
 4. Routes output to the dialog (interactive) or to `~/ai-daily/YYYY-MM-DD.md` + a macOS notification (headless/scheduled)
 
 ## Install
+终端安装命令：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh | bash
