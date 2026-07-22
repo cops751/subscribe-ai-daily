@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # subscribe-ai-daily one-line installer.
-# Detects Claude Code and/or Codex, copies skill files, runs a 4-question
-# wizard, writes config.json, and optionally installs a macOS LaunchAgent
-# that fires the skill on a daily schedule.
+# Non-interactive: detects Claude Code and/or Codex, copies skill files,
+# writes a default config.json (configured=false). First use in the agent
+# guides config; if the user enables scheduling there, the skill writes the
+# LaunchAgent.
 set -euo pipefail
 
 SKILL_NAME="subscribe-ai-daily"
 CLAUDE_DIR="$HOME/.claude/skills/$SKILL_NAME"
 CODEX_DIR="${CODEX_SKILL_DIR:-$HOME/.codex/skills/$SKILL_NAME}"
 REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main}"
-CODEX_BIN="/Applications/ChatGPT.app/Contents/Resources/codex"
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
 echo "=== subscribe-ai-daily installer ==="
@@ -58,64 +58,20 @@ if [[ $INSTALL_CODEX -eq 1 ]]; then
   install_one "$CODEX_DIR"
 fi
 
-# --- 3. 4-question wizard ---
+# --- 3. Write default config (non-interactive) ---
+# No wizard in the terminal. The skill guides first-time config on first use.
 # Canonical config lives at the Claude path when both hosts are installed.
 TARGET_CONFIG="$CLAUDE_DIR/config.json"
 if [[ $INSTALL_CLAUDE -eq 0 ]]; then
   TARGET_CONFIG="$CODEX_DIR/config.json"
 fi
 
-ENABLE_SCHED=0
-CRON="0 9 * * *"
-HH=9
-MM=0
-
-# read_prompt: prompt that works under `curl | bash` (where stdin is the script).
-# When a tty is attached, read the answer from /dev/tty with the prompt shown
-# inline; otherwise fall back to the default so non-interactive runs keep moving.
-read_prompt() {
-  local _p="$1" _var="$2" _def="${3:-}"
-  local _line="$_def"
-  if [[ -t 0 ]] || [[ -t 1 ]]; then
-    # interactive terminal: ask via /dev/tty so piped-stdin scripts still work
-    if IFS= read -r -p "$_p" _line </dev/tty 2>/dev/null; then
-      :
-    else
-      _line="$_def"
-    fi
-  fi
-  printf -v "$_var" '%s' "$_line"
-}
-
-read_prompt "开启定时推送? (y/N) " ANS_SCHEDULE "N"
-if [[ "$ANS_SCHEDULE" =~ ^[Yy] ]]; then
-  ENABLE_SCHED=1
-  read_prompt "每天推送时间 (HH:MM, 默认 09:00) " TM "09:00"
-  HH=$(echo "$TM" | cut -d: -f1 | sed 's/^0//')
-  MM=$(echo "$TM" | cut -d: -f2 | sed 's/^0//')
-  CRON="$MM $HH * * *"
-fi
-
-read_prompt "输出语言 (zh/en, 默认 zh) " LANG_OUT "zh"
-
-read_prompt "文章类别 (回车=blog,research,news 全选; 或用逗号筛选) " CATS "blog,research,news"
-CATS_JSON=$(echo "$CATS" | tr ',' '\n' | jq -R . | jq -s .)
-
-read_prompt "公司筛选 (回车=10家全选; 或用逗号列出要保留的 id) " COMPS "" || COMPS=""
-if [[ -z "$COMPS" ]]; then
-  COMPS_JSON='["anthropic","openai","google","meta","deepseek","moonshot","zhipu","kimi","alibaba","bytedance"]'
-else
-  COMPS_JSON=$(echo "$COMPS" | tr ',' '\n' | jq -R . | jq -s .)
-fi
-
 mkdir -p "$HOME/ai-daily"
-SCHED_JSON=$(printf '{"enabled":%s,"cron":"%s"}' "$ENABLE_SCHED" "$CRON")
-jq -n \
-  --arg lang "$LANG_OUT" \
-  --argjson cats "$CATS_JSON" \
-  --argjson comps "$COMPS_JSON" \
-  --argjson sched "$SCHED_JSON" \
-  '{language:$lang, categories:$cats, companies:$comps, summary_style:"paragraph", window_hours:24, output_dir:"~/ai-daily", schedule:$sched}' \
+# marked configured=false so the skill knows to run the first-use wizard.
+jq -n '{language:"zh", categories:["blog","research","news"],
+  companies:["anthropic","openai","google","meta","deepseek","moonshot","zhipu","kimi","alibaba","bytedance"],
+  summary_style:"paragraph", window_hours:24, output_dir:"~/ai-daily",
+  schedule:{enabled:false, cron:"0 9 * * *"}, configured:false}' \
   > "$TARGET_CONFIG"
 echo "config written -> $TARGET_CONFIG"
 
@@ -124,45 +80,8 @@ if [[ $INSTALL_CLAUDE -eq 1 && $INSTALL_CODEX -eq 1 ]]; then
   cp "$TARGET_CONFIG" "$CODEX_DIR/config.json"
 fi
 
-# --- 4. LaunchAgent if scheduling enabled ---
-if [[ $ENABLE_SCHED -eq 1 ]]; then
-  PLIST="$HOME/Library/LaunchAgents/ai.subscribe-ai-daily.plist"
-  mkdir -p "$HOME/Library/LaunchAgents"
+# --- 4. LaunchAgent only if the user later sets schedule.enabled=true in config ---
+# (handled by the skill's first-use wizard, not by this installer.)
 
-  # Build ProgramArguments + invocation label per detected host.
-  # Prefer Claude Code when both present (canonical path); fall back to Codex.
-  PROG_ARGS=""
-  HOST_LABEL=""
-  if [[ $INSTALL_CLAUDE -eq 1 ]]; then
-    HOST_LABEL="claude"
-    # Use printf to embed the prompt string safely into the plist <string> entries.
-    PROG_ARGS=$(printf '<string>claude</string><string>-p</string><string>invoke the subscribe-ai-daily skill and output the daily briefing</string>')
-  else
-    HOST_LABEL="codex"
-    if [[ ! -x "$CODEX_BIN" ]]; then
-      echo "WARN: codex binary not found at $CODEX_BIN — LaunchAgent will fail to run. Add it to PATH or install the ChatGPT.app." >&2
-    fi
-    PROG_ARGS=$(printf '<string>%s</string><string>exec</string><string>--dangerously-bypass-approvals-and-sandbox</string><string>invoke the subscribe-ai-daily skill and output the daily briefing</string>' "$CODEX_BIN")
-  fi
+echo "=== done. ask your agent '今天 AI 圈有什么' to start; first run will guide config ==="
 
-  cat > "$PLIST" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>ai.subscribe-ai-daily</string>
-  <key>ProgramArguments</key><array>
-    $PROG_ARGS
-  </array>
-  <key>StartCalendarInterval</key><dict>
-    <key>Hour</key><integer>$HH</integer>
-    <key>Minute</key><integer>$MM</integer>
-  </dict>
-  <key>StandardOutPath</key><string>$HOME/ai-daily/launched.log</string>
-  <key>StandardErrorPath</key><string>$HOME/ai-daily/launched.err</string>
-</dict></plist>
-EOF
-  launchctl load "$PLIST" 2>/dev/null || true
-  printf 'LaunchAgent installed -> %s (host=%s, fires daily at %02d:%02d)\n' "$PLIST" "$HOST_LABEL" "$HH" "$MM"
-fi
-
-echo "=== done. invoke with: /subscribe-ai-daily ==="

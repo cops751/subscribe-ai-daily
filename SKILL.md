@@ -24,9 +24,27 @@ Past-24h AI industry briefing across 10 companies. Direct output to dialog (inte
 
 ### Step 1 — Load config
 
-Read `~/.claude/skills/subscribe-ai-daily/config.json`. If missing, print: "subscribe-ai-daily 未配置,请重新运行 install.sh" and stop.
+Read `~/.claude/skills/subscribe-ai-daily/config.json` (Codex-only installs: `~/.codex/skills/subscribe-ai-daily/config.json`). If missing, print: "subscribe-ai-daily 未配置,请重新运行 install.sh" and stop.
 
-Extract: `language`, `categories`, `companies`, `window_hours`, `output_dir`.
+If the config has `"configured": false` (first run after install), run the **first-use wizard** before proceeding:
+
+1. Ask the user 4 questions (use AskUserQuestion or plain dialog, whichever the host supports):
+   - 输出语言:`zh` / `en`(默认 zh)
+   - 文章类别:`blog` / `research` / `news` 子集(默认全选)
+   - 公司筛选:10 家 id 子集(默认全选:anthropic, openai, google, meta, deepseek, moonshot, zhipu, kimi, alibaba, bytedance)
+   - 开启定时推送:`y` 开启(再问每天推送时间 HH:MM,默认 09:00)/ `n` 跳过(默认)
+2. Write the answers back to the same `config.json`, keeping the existing `summary_style`, `window_hours`, `output_dir`, and setting `configured: true`.
+3. If the user enabled scheduling, also write the LaunchAgent at `~/Library/LaunchAgents/ai.subscribe-ai-daily.plist`:
+   - **Claude Code host:** `ProgramArguments` = `claude -p "invoke the subscribe-ai-daily skill and output the daily briefing"`
+   - **Codex host:** `/Applications/ChatGPT.app/Contents/Resources/codex exec --dangerously-bypass-approvals-and-sandbox "invoke the subscribe-ai-daily skill and output the daily briefing"` (warn if that binary is missing)
+   - `StartCalendarInterval` with the chosen Hour/Minute
+   - `StandardOutPath` / `StandardErrorPath` = `$HOME/ai-daily/launched.log` / `launched.err`
+   - `launchctl load` the plist
+4. Continue to Step 2 with the now-configured values.
+
+If `configured` is already `true`, skip the wizard and extract: `language`, `categories`, `companies`, `window_hours`, `output_dir`.
+
+In headless mode (Step 2 says headless) with `configured: false`, do **not** run the wizard — a scheduled run can't ask questions. Instead write a one-line `今日未配置` report and exit.
 
 ### Step 2 — Detect interactive vs headless
 

@@ -18,21 +18,18 @@ When invoked (manually or on schedule), the skill:
 curl -fsSL https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh | bash
 ```
 
-The installer asks 4 questions:
-1. Schedule on/off + daily push time (e.g. `09:00`)
-2. Output language (`zh` / `en`)
-3. Article categories to include (subset of `blog,research,news`)
-4. Companies to include (subset of the 10 ids, or enter for all)
+The installer is non-interactive: it copies the skill files and writes a default config (10 companies, zh, all categories, no schedule). It installs into `~/.claude/skills/subscribe-ai-daily/` (Claude Code) and, if `~/.codex/` exists, also into `~/.codex/skills/subscribe-ai-daily/` (Codex).
 
-It installs the skill into `~/.claude/skills/subscribe-ai-daily/` (Claude Code) and, if `~/.codex/` exists, also into `~/.codex/skills/subscribe-ai-daily/` (Codex).
+## First use (config wizard)
 
-## Manual use
+The first time you invoke the skill in your agent (ask "今天 AI 圈有什么" or "AI 日报"), it detects `configured: false` and walks you through 4 questions:
 
-In Claude Code or Codex, ask "今天 AI 圈有什么", "AI 日报", "subscribe-ai-daily", or any equivalent phrasing — the skill fires.
+1. Output language (`zh` / `en`)
+2. Article categories (subset of `blog, research, news`)
+3. Companies (subset of the 10 ids, or all)
+4. Schedule on/off + daily push time (e.g. `09:00`)
 
-## Scheduled use
-
-If you answered `y` to scheduling, the installer writes a macOS LaunchAgent at `~/Library/LaunchAgents/ai.subscribe-ai-daily.plist` that fires daily at your chosen time. The invocation differs by host:
+Answers are saved to `config.json` and `configured` flips to `true`. If you enable scheduling, the wizard also writes a macOS LaunchAgent at `~/Library/LaunchAgents/ai.subscribe-ai-daily.plist` that fires daily at your chosen time. The invocation differs by host:
 
 - **Claude Code:** runs `claude -p "<prompt invoking subscribe-ai-daily>"` headlessly
 - **Codex:** runs `/Applications/ChatGPT.app/Contents/Resources/codex exec --dangerously-bypass-approvals-and-sandbox` with the same prompt
@@ -52,6 +49,7 @@ In headless mode the report is written to `$OUTPUT_DIR/YYYY-MM-DD.md` (default `
 | `window_hours` | number | `24` | Rolling time window for article inclusion |
 | `output_dir` | path | `"~/ai-daily"` | Where headless reports are written |
 | `schedule` | object | `{"enabled": false, "cron": "0 9 * * *"}` | Cron-style schedule; `enabled: false` disables the LaunchAgent |
+| `configured` | boolean | `false` | `false` after install triggers the first-use wizard; `true` once the user has answered the 4 questions |
 
 ## Sources & maintenance
 

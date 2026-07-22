@@ -8,5 +8,6 @@
   "schedule": {
     "enabled": false,
     "cron": "0 9 * * *"
-  }
+  },
+  "configured": false
 }
