@@ -38,11 +38,14 @@ install_one() {
   if [[ -f "SKILL.md" ]]; then
     cp SKILL.md sources.json config.example.json "$dest_root/"
     cp lib/*.sh "$dest_root/lib/" 2>/dev/null || true
+    # VERSION: stamped at release so the skill can self-check for updates.
+    if [[ -f "VERSION" ]]; then cp VERSION "$dest_root/"; else echo "dev" > "$dest_root/VERSION"; fi
   else
     local f
-    for f in SKILL.md sources.json config.example.json lib/merge_sources.sh lib/fetch_articles.sh; do
-      curl -fsSL -H "User-Agent: $UA" "$REPO_RAW_BASE/$f" -o "$dest_root/$f"
+    for f in SKILL.md sources.json config.example.json lib/merge_sources.sh lib/fetch_articles.sh VERSION; do
+      curl -fsSL -H "User-Agent: $UA" "$REPO_RAW_BASE/$f" -o "$dest_root/$f" 2>/dev/null || true
     done
+    [[ -f "$dest_root/VERSION" ]] || echo "dev" > "$dest_root/VERSION"
   fi
   [[ -f "$dest_root/config.json" ]] || cp "$dest_root/config.example.json" "$dest_root/config.json"
   echo "installed -> $dest_root"
