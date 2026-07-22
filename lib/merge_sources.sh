@@ -4,7 +4,7 @@
 
 REMOTE_CACHE="/tmp/subscribe-ai-daily-sources.remote.json"
 REMOTE_TS="/tmp/subscribe-ai-daily-sources.remote.ts"
-REMOTE_URL="${SOURCES_REMOTE_URL:-https://raw.githubusercontent.com/USER/subscribe-ai-daily/main/sources.json}"
+REMOTE_URL="${SOURCES_REMOTE_URL:-https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/sources.json}"
 ONE_DAY=86400
 
 merge_sources() {

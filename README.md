@@ -15,10 +15,8 @@ When invoked (manually or on schedule), the skill:
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/USER/subscribe-ai-daily/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main/install.sh | bash
 ```
-
-Replace `USER` with the repo owner (e.g. your GitHub username or the org that owns the fork).
 
 The installer asks 4 questions:
 1. Schedule on/off + daily push time (e.g. `09:00`)

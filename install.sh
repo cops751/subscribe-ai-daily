@@ -8,7 +8,7 @@ set -euo pipefail
 SKILL_NAME="subscribe-ai-daily"
 CLAUDE_DIR="$HOME/.claude/skills/$SKILL_NAME"
 CODEX_DIR="${CODEX_SKILL_DIR:-$HOME/.codex/skills/$SKILL_NAME}"
-REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/USER/subscribe-ai-daily/main}"
+REPO_RAW_BASE="${REPO_RAW_BASE:-https://raw.githubusercontent.com/cops751/subscribe-ai-daily/main}"
 CODEX_BIN="/Applications/ChatGPT.app/Contents/Resources/codex"
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
